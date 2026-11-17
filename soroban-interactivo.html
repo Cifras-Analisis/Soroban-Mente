@@ -712,7 +712,14 @@
   .spanel .rec { color: #FFC300; font-weight: bold; margin: 6px 0; }
   .spanel.pause { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); z-index: 5; width: min(92%, 420px); }
   .spanel.pause h2 { font-size: 2.4rem; }
-  #sGrid.blur { filter: blur(14px) brightness(.5); pointer-events: none; }
+  /* Pausa: la partida se ve borrosa solo mientras su panel de pausa está a la vista. Lo cierre quien lo cierre
+     (continuar, reiniciar, menú, cambiar de juego), la imagen vuelve a verse nítida. */
+  body > div:not(.hidden):has(> .pause:not(.hidden)) .pzone,
+  body:has(> #arc:not(.hidden) > #arcPause:not(.hidden)) #wrap { filter: var(--pf, blur(12px) brightness(.5)); pointer-events: none; }
+  #sGrid { --pf: blur(14px) brightness(.5); }
+  #scStage { --pf: blur(10px) brightness(.8); }
+  #rcPlayArea, #duPlay { --pf: blur(8px) brightness(.6); }
+  #arcStage, #wrap { --pf: blur(10px) brightness(.6); }
   .sover h2 { font-size: 2.4rem; margin: 6px 0; text-shadow: 0 3px 0 #2c74b3; }
   .sover p { color: #9fd8ff; font-size: 1.1rem; margin: 4px 0; }
 
@@ -1690,7 +1697,7 @@
         <button class="next sbtn2" id="sToMenu">🏠 Menú</button>
       </div>
     </div>
-    <div class="sgrid" id="sGrid"></div>
+    <div class="pzone sgrid" id="sGrid"></div>
     <div class="smsg" id="sMsg"></div>
     <div class="sover hidden" id="sOver">
       <h2 id="sOverTitle">¡Tiempo!</h2>
@@ -1741,7 +1748,7 @@
         <button class="next sbtn2" id="pzToMenu">🏠 Menú</button>
       </div>
     </div>
-    <div class="pzplay hidden" id="pzArea">
+    <div class="pzone pzplay hidden" id="pzArea">
       <div class="pzboardwrap"><canvas id="pzBoard" width="600" height="600"></canvas><div class="pzcredit" id="pzCredit"></div></div>
       <div class="pzopts" id="pzOpts"></div>
     </div>
@@ -1784,7 +1791,7 @@
       </div>
     </div>
     <div class="smsg scmsg" id="scMsg"></div>
-    <div class="scstage hidden" id="scStage"></div>
+    <div class="pzone scstage hidden" id="scStage"></div>
     <div class="scinput hidden" id="scInputRow"><input id="scInput" inputmode="numeric" autocomplete="off" placeholder="Número"><button class="next" id="scSend">⏎ Enter</button></div>
     <div class="sover hidden" id="scOver">
       <h2>¡Fin del juego! 🌧️</h2>
@@ -1811,7 +1818,7 @@
       <div class="ahud" id="arcHud"></div>
       <label class="avol" title="Volumen de la música">🎵<input type="range" id="arcVolBar" min="0" max="100"></label>
     </div>
-    <div class="astage hidden" id="arcStage">
+    <div class="pzone astage hidden" id="arcStage">
       <div class="aprev" id="arcPrev"></div>
       <div class="afall" id="arcFall"></div>
       <div class="afloor"></div>
@@ -1848,7 +1855,7 @@
       <div class="ahud" id="duHud"></div>
       <label class="avol" title="Volumen de la música">🎵<input type="range" id="duVolBar" min="0" max="100"></label>
     </div>
-    <div class="duplay hidden" id="duPlay"></div>
+    <div class="pzone duplay hidden" id="duPlay"></div>
     <div class="abanner dubanner hidden" id="duBanner"></div>
     <div class="apanel pause hidden" id="duPause">
       <h2>⏸ PAUSA</h2>
@@ -1934,7 +1941,7 @@
         <button class="next sbtn2" id="rcToMenu">🏠 Menú</button>
       </div>
     </div>
-    <div class="rcplay hidden" id="rcPlayArea">
+    <div class="pzone rcplay hidden" id="rcPlayArea">
       <div class="rctop"><button class="pausebtn" id="rcPauseBtn" title="Pausar">⏸</button><div class="rcsong" id="rcSongName"></div><button class="pausebtn" id="rcStopBtn" title="Salir">✖</button></div>
       <div class="rcprog"><i id="rcProg"></i></div>
       <div class="rcnow" id="rcNow"></div>
@@ -1980,9 +1987,9 @@
         <button class="next sbtn2" id="kToMenu">🏠 Menú</button>
       </div>
     </div>
-    <svg class="kstage hidden" id="kStage" viewBox="0 0 480 250"></svg>
+    <svg class="pzone kstage hidden" id="kStage" viewBox="0 0 480 250"></svg>
     <div class="smsg" id="kMsg"></div>
-    <div class="kopts hidden" id="kOpts"></div>
+    <div class="pzone kopts hidden" id="kOpts"></div>
     <div class="sover hidden" id="kOver">
       <h2>¡Tiempo! ⏱️</h2>
       <p id="kOverInfo"></p>
@@ -2026,13 +2033,13 @@
         <button class="next sbtn2" id="hToMenu">🏠 Menú</button>
       </div>
     </div>
-    <div class="hstage hidden" id="hStage">
+    <div class="pzone hstage hidden" id="hStage">
       <div class="hrow top" id="hTop"></div>
       <div class="hdisc"></div>
       <div class="hrow bottom" id="hBottom"></div>
     </div>
     <div class="smsg" id="hMsg"></div>
-    <div class="hopts hidden" id="hOpts"></div>
+    <div class="pzone hopts hidden" id="hOpts"></div>
     <div class="sover hidden" id="hOver">
       <h2>¡Tiempo! ⏱️</h2>
       <p id="hOverInfo"></p>
@@ -2078,7 +2085,7 @@
         <button class="next sbtn2" id="fToMenu">🏠 Menú</button>
       </div>
     </div>
-    <div class="fplay hidden" id="fPlayArea">
+    <div class="pzone fplay hidden" id="fPlayArea">
       <div class="fbox ftarget"><div class="fgrid" id="fTarget"></div></div>
       <div class="fbox fboard"><div class="fgrid" id="fBoard"></div></div>
     </div>
@@ -3048,7 +3055,7 @@
     el('sMenu').classList.add('hidden');
     el('sPause').classList.add('hidden');
     el('sBar').classList.remove('hidden');
-    el('sGrid').classList.remove('hidden', 'blur');
+    el('sGrid').classList.remove('hidden');
     el('sTimer').classList.remove('low');
     gTick = setInterval(() => gridClock(run), 100);
     gridClock(run);
@@ -3212,7 +3219,6 @@
     g.paused = true;
     g.remaining = Math.max(0, g.ends - performance.now());
     clearTimeout(g.hideTimer);
-    el('sGrid').classList.add('blur');
     el('sPauseInfo').textContent = '⏱️ ' + Math.ceil(g.remaining / 1000) + ' s · 🎯 ' + g.rounds + ' rondas';
     el('sPause').classList.remove('hidden');
     el('sMsg').textContent = '';
@@ -3223,7 +3229,6 @@
     g.paused = false;
     g.ends = performance.now() + g.remaining;
     el('sPause').classList.add('hidden');
-    el('sGrid').classList.remove('blur');
     const run = g.run;
     if (g.pending) { const f = g.pending; g.pending = null; f(); }
     else if (g.phase === 'show') {
@@ -3392,8 +3397,6 @@
 
   function fitClearPause() {
     el('fPause').classList.add('hidden');
-    el('fPlayArea').style.filter = '';
-    el('fPlayArea').style.pointerEvents = '';
   }
 
   function fitMenu() {
@@ -3571,8 +3574,6 @@
     if (!f || f.paused) return;
     f.paused = true;
     f.remaining = Math.max(0, f.ends - performance.now());
-    el('fPlayArea').style.filter = 'blur(12px) brightness(.55)';
-    el('fPlayArea').style.pointerEvents = 'none';
     el('fPauseInfo').textContent = '⏱️ ' + Math.ceil(f.remaining / 1000) + ' s · 🧩 ' + f.solved + ' resueltas';
     el('fPause').classList.remove('hidden');
   }
@@ -3594,7 +3595,6 @@
     el('fOverInfo').innerHTML = (f.grav ? '⬇️ Gravedad' : '🪶 Sin gravedad') + '<br>🧩 Resueltas: <b>' + f.solved +
       '</b> · ✖ Fallos: <b>' + f.fails + '</b>' + (isBest && f.solved > 0 ? '<br>🏆 ¡Nuevo récord!' : '');
     ['fBar', 'fPlayArea', 'fPause'].forEach(id => el(id).classList.add('hidden'));
-    el('fPlayArea').style.filter = ''; el('fPlayArea').style.pointerEvents = '';
     el('fMsg').textContent = '';
     el('fOver').classList.remove('hidden');
     audio.fanfare(); fx.confetti(140, true); fx.bigMsg('¡Tiempo! ⏱️');
@@ -3649,7 +3649,6 @@
     if (h) clearTimeout(h.showTimer);
     el('hPause').classList.add('hidden');
     el('hStage').classList.remove('paused');
-    el('hStage').style.filter = ''; el('hOpts').style.filter = '';
   }
 
   function holeMenu() {
@@ -3796,7 +3795,6 @@
     h.remaining = Math.max(0, h.ends - performance.now());
     clearTimeout(h.showTimer);
     el('hStage').classList.add('paused');
-    el('hStage').style.filter = 'blur(12px) brightness(.5)'; el('hOpts').style.filter = 'blur(10px) brightness(.5)';
     el('hPauseInfo').textContent = '⏱️ ' + Math.ceil(h.remaining / 1000) + ' s · ✔ ' + h.correct + ' aciertos';
     el('hPause').classList.remove('hidden');
   }
@@ -3807,7 +3805,6 @@
     h.ends = performance.now() + h.remaining;
     el('hPause').classList.add('hidden');
     el('hStage').classList.remove('paused');
-    el('hStage').style.filter = ''; el('hOpts').style.filter = '';
     const run = h.run;
     if (h.pending) { const fn = h.pending; h.pending = null; fn(); }
     else if (h.phase === 'show') {
@@ -3977,7 +3974,6 @@
     confHide('key');
     clearInterval(kTick); kTick = null;
     el('kPause').classList.add('hidden');
-    el('kStage').style.filter = ''; el('kOpts').style.filter = '';
   }
 
   function keyMenu() {
@@ -4134,8 +4130,6 @@
     if (!k || k.paused) return;
     k.paused = true;
     k.remaining = Math.max(0, k.ends - performance.now());
-    el('kStage').style.filter = 'blur(12px) brightness(.5)'; el('kOpts').style.filter = 'blur(10px) brightness(.5)';
-    el('kOpts').style.pointerEvents = 'none';
     el('kPauseInfo').textContent = '⏱️ ' + Math.ceil(k.remaining / 1000) + ' s · 🔑 ' + k.solved + ' llaves';
     el('kPause').classList.remove('hidden');
   }
@@ -4145,7 +4139,6 @@
     k.paused = false;
     k.ends = performance.now() + k.remaining;
     el('kPause').classList.add('hidden');
-    el('kStage').style.filter = ''; el('kOpts').style.filter = ''; el('kOpts').style.pointerEvents = '';
     if (k.pending) { const fn = k.pending; k.pending = null; fn(); }
     keyClock(k.run);
   }
@@ -4418,7 +4411,7 @@
       '<button class="next" id="' + p + 'Resume">▶ Continuar</button><button class="next sbtn2" id="' + p + 'Restart">🔄 Reiniciar</button>' +
       '<button class="next sbtn2" id="' + p + 'ToMenu">🏠 Menú</button></div></div>' +
       '<div class="smsg" id="' + p + 'Msg"></div>' +
-      '<div class="gplay hidden" id="' + p + 'Area">' + o.play +
+      '<div class="pzone gplay hidden" id="' + p + 'Area">' + o.play +
       '<div class="gconfirm hidden" id="' + p + 'Confirm"><button class="next" id="' + p + 'Ok">✔ Confirmar</button></div></div>' +
       '<div class="sover hidden" id="' + p + 'Over"><h2>¡Tiempo! ⏱️</h2><p id="' + p + 'OverInfo"></p><div class="sbtns">' +
       '<button class="next" id="' + p + 'Again">▶ Jugar otra vez</button><button class="next sbtn2" id="' + p + 'OverMenu">🏠 Menú</button></div></div>';
@@ -4454,7 +4447,6 @@
       G.run++; clearInterval(G.tick); G.tick = null;
       G.s = null; // así se detienen también los bucles de animación del juego
       $('Pause').classList.add('hidden'); $('Confirm').classList.add('hidden');
-      $('Area').style.filter = ''; $('Area').style.pointerEvents = '';
     };
     G.menu = () => {
       G.stop(); G.s = null;
@@ -4539,7 +4531,6 @@
       const s = G.s;
       if (!s || s.paused) return;
       s.paused = true; s.remaining = Math.max(0, s.ends - performance.now());
-      $('Area').style.filter = 'blur(12px) brightness(.5)'; $('Area').style.pointerEvents = 'none';
       $('PauseInfo').textContent = (o.noTimer ? '' : '⏱️ ' + Math.ceil(s.remaining / 1000) + ' s · ') + o.icon + ' ' + s.solved + ' ' + o.unit;
       $('Pause').classList.remove('hidden');
     };
@@ -4548,7 +4539,6 @@
       if (!s || !s.paused) return;
       s.paused = false; s.ends = performance.now() + s.remaining;
       $('Pause').classList.add('hidden');
-      $('Area').style.filter = ''; $('Area').style.pointerEvents = '';
       if (s.pending) { const fn = s.pending; s.pending = null; fn(); }
       G.clock(s.run);
     };
@@ -5867,7 +5857,6 @@
     try { rc.ctx.close(); } catch (e) { }
     rc = null;
     el('rcPause').classList.add('hidden');
-    el('rcPlayArea').style.filter = ''; // salir o reiniciar desde la pausa no debe dejar la partida borrosa
   }
   function rcStart() {
     rcStop(); rcIntroStop();
@@ -5982,13 +5971,11 @@
     if (!rc || rc.paused) return;
     rc.paused = true; rc.ctx.suspend(); if (rc.player) { clearTimeout(rc.pTimer); rc.player.pause(); }
     el('rcPause').classList.remove('hidden');
-    el('rcPlayArea').style.filter = 'blur(8px) brightness(.6)';
   }
   function rcResume() {
     if (!rc || !rc.paused) return;
     rc.paused = false; rc.ctx.resume().then(rcPlayerSync);
     el('rcPause').classList.add('hidden');
-    el('rcPlayArea').style.filter = '';
   }
   el('rcPlay').addEventListener('click', rcIntro);
   el('rcAgain').addEventListener('click', rcStart);
@@ -6052,7 +6039,6 @@
     if (sc) sc.dead = true;
     sc = null;
     el('scPause').classList.add('hidden');
-    el('scStage').style.filter = '';
   }
   function scStart() {
     scStop();
@@ -6170,14 +6156,12 @@
   function scPause() {
     if (!sc || sc.paused) return;
     sc.paused = true;
-    el('scStage').style.filter = 'blur(10px) brightness(.8)';
     el('scPauseInfo').textContent = '🧮 ' + sc.score + ' números · ' + '❤️'.repeat(sc.lives);
     el('scPause').classList.remove('hidden');
   }
   function scResume() {
     if (!sc || !sc.paused) return;
     sc.paused = false;
-    el('scStage').style.filter = '';
     el('scPause').classList.add('hidden');
     el('scInput').focus();
   }
@@ -6752,7 +6736,6 @@
     confHide('puzzle');
     clearInterval(pzTick); pzTick = null;
     el('pzPause').classList.add('hidden');
-    el('pzArea').style.filter = ''; el('pzArea').style.pointerEvents = '';
   }
 
   function pzMenu() {
@@ -6802,7 +6785,6 @@
     if (!pz || pz.paused) return;
     pz.paused = true;
     pz.remaining = Math.max(0, pz.ends - performance.now());
-    el('pzArea').style.filter = 'blur(12px) brightness(.5)'; el('pzArea').style.pointerEvents = 'none';
     el('pzPauseInfo').textContent = '⏱️ ' + Math.ceil(pz.remaining / 1000) + ' s · 🖼️ ' + pz.solved + ' imágenes';
     el('pzPause').classList.remove('hidden');
   }
@@ -6812,7 +6794,6 @@
     pz.paused = false;
     pz.ends = performance.now() + pz.remaining;
     el('pzPause').classList.add('hidden');
-    el('pzArea').style.filter = ''; el('pzArea').style.pointerEvents = '';
     if (pz.pending) { const fn = pz.pending; pz.pending = null; fn(); }
     pzClock(pz.run);
   }
@@ -7616,13 +7597,11 @@
     revClose();
     el('arcPause').classList.add('hidden');
     el('arcBanner').classList.add('hidden');
-    el('arcStage').style.filter = '';
     el('arcStage').classList.remove('frozen');
     el('arcStage').querySelectorAll('.mitem').forEach(x => x.remove());
     el('arcFreeze').classList.add('hidden');
     document.body.classList.remove('arclay');
     wrap.style.width = '';
-    wrap.style.filter = ''; wrap.style.pointerEvents = '';
     arcDanger(0);
     cols.forEach(k => k.el.classList.remove('bad'));
   }
@@ -8114,8 +8093,6 @@
     if (!arc || arc.paused) return;
     arc.paused = true;
     arcMusic.pause();
-    el('arcStage').style.filter = 'blur(10px) brightness(.6)';
-    wrap.style.filter = 'blur(10px) brightness(.6)'; wrap.style.pointerEvents = 'none';
     el('arcPauseInfo').textContent = arc.m === 'faster' ? '✔ ' + arc.solved + ' operaciones' : '⏱ ' + fmtClock(Math.floor(arc.t)) + ' · ✔ ' + arc.solved + ' operaciones';
     el('arcVolP').value = arcVol(); el('arcFxP').value = el('volFx').value;
     el('arcPause').classList.remove('hidden');
@@ -8124,8 +8101,6 @@
     if (!arc || !arc.paused) return;
     arc.paused = false;
     arcMusic.resume();
-    el('arcStage').style.filter = '';
-    wrap.style.filter = ''; wrap.style.pointerEvents = '';
     el('arcPause').classList.add('hidden');
   }
   function setArcVol(v) {
@@ -8859,13 +8834,11 @@
     if (!du || du.paused) return;
     du.paused = true; arcMusic.pause();
     el('duPauseInfo').textContent = msg || '';
-    el('duPlay').style.filter = 'blur(8px) brightness(.6)';
     el('duPause').classList.remove('hidden');
   }
   function duResume() {
     if (!du || !du.paused) return;
     du.paused = false; arcMusic.resume();
-    el('duPlay').style.filter = '';
     el('duPause').classList.add('hidden');
   }
   function duelPauseToggle() { if (du) du.paused ? duResume() : duPause(); }
