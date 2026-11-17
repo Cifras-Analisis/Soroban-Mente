@@ -1889,7 +1889,7 @@
     <div class="ctlmsg" id="ctlMsg"></div>
     <div class="ctltilt hidden" id="ctlTilt"><button id="ctlTiltBtn">🔮 Activar movimiento</button><button id="ctlCal">🎯 Centrar</button><button id="ctlInv">⇄ Invertir</button><b id="ctlAng"></b></div>
     <div class="ctlab hidden" id="ctlAbWrap"><div id="ctlAb"></div></div>
-    <div class="ctlwait hidden" id="ctlWait"><div class="ctlspin">📱</div><button id="ctlPauseW">⏸ Pausa</button></div>
+    <div class="ctlwait hidden" id="ctlWait"><div class="ctlspin">📱</div><button id="ctlTake" class="hidden">📱 Usar este celular</button><button id="ctlPauseW">⏸ Pausa</button></div>
     <div class="ctlpad hidden" id="ctlPad">
       <div class="ctlarea" id="ctlPadArea"><i id="ctlDot"></i><span>Toca aquí: es la pantalla compartida</span></div>
       <div class="ctlkeys" id="ctlKeys"><button data-k="pause">⏸ Pausa</button><button data-k="fire">🎯 Disparar</button><button id="ctlNumBtn">🔢 Números</button></div>
@@ -8187,8 +8187,16 @@
       peer.on('connection', c => {
         const slot = c.metadata && +c.metadata.slot === 2 ? 2 : 1;
         c.on('open', () => {
-          if (conns[slot] && conns[slot] !== c) try { conns[slot].close(); } catch (e) { }
+          // Puesto ocupado por otra página (otra pestaña u otro celular con el mismo enlace): se queda la nueva y a la
+          // anterior se le avisa para que deje de reconectarse; si no, las dos se echan una a la otra sin parar.
+          // Si es la misma página que vuelve a conectarse (mismo dev), se reemplaza sin aviso.
+          const old = conns[slot];
           conns[slot] = c; last[slot] = '';
+          if (old && old !== c) {
+            const a = old.metadata && old.metadata.dev, b = c.metadata && c.metadata.dev;
+            if (a && b && a !== b) try { old.send({ t: 'kicked' }); } catch (e) { }
+            setTimeout(() => { try { old.close(); } catch (e) { } }, 500);
+          }
           rmUI(); refresh(); emit(slot, { t: 'hello' });
           arcSfx.select(0.7);
         });
@@ -8368,24 +8376,41 @@
     el('home').classList.add('hidden');
     el('ctlPage').classList.remove('hidden');
     el('ctlJ').textContent = 'J' + slot;
-    const C = { peer: null, conn: null, view: null, ab: null, lastMove: 0, rt: 0, tilt: false, zero: 0, inv: false, ang: 0, sendT: 0 };
+    const C = { peer: null, conn: null, view: null, ab: null, lastMove: 0, rt: 0, tilt: false, zero: 0, inv: false, ang: 0, sendT: 0, kicked: false };
+    // Identifica esta página (no se guarda: una pestaña duplicada debe contar como otra pantalla)
+    const DEV = Math.random().toString(36).slice(2, 10);
     const stat = (t, ok) => { el('ctlStat').textContent = t; el('ctlStat').classList.toggle('ok', !!ok); };
     const send = m => { if (C.conn && C.conn.open) try { C.conn.send(m); } catch (e) { } };
-    const retry = () => { clearTimeout(C.rt); C.rt = setTimeout(connect, 2500); };
+    const retry = () => { clearTimeout(C.rt); if (!C.kicked) C.rt = setTimeout(connect, 2500); };
+    // El mismo puesto se abrió en otra pestaña u otro celular: esta deja de reconectarse hasta que se pida
+    function kicked() {
+      C.kicked = true; clearTimeout(C.rt);
+      stat('⛔ En uso en otra pantalla');
+      setView({ v: 'wait', title: '📱 Control', msg: 'Este puesto (J' + slot + ') se abrió en otra pestaña o en otro celular. Cierra esta pestaña o toca «Usar este celular».' });
+      el('ctlTake').classList.remove('hidden'); el('ctlPauseW').classList.add('hidden');
+      navigator.vibrate && navigator.vibrate([60, 40, 60]);
+    }
+    el('ctlTake').addEventListener('click', () => {
+      C.kicked = false;
+      el('ctlTake').classList.add('hidden'); el('ctlPauseW').classList.remove('hidden');
+      setView({ v: 'wait', title: '📱 Control', msg: 'Conectando con la pantalla…' });
+      connect();
+    });
     async function connect() {
+      if (C.kicked) return;
       stat('Conectando…');
       try { await loadLib('peer'); } catch (e) { stat('⚠️ Sin internet'); retry(); return; }
       if (!C.peer || C.peer.destroyed) {
         C.peer = new Peer({ config: iceCfg(), debug: 0 });
-        C.peer.on('error', e => { stat(e.type === 'peer-unavailable' ? '⏳ La pantalla no está lista (código ' + code + ')' : '⚠️ Reintentando…'); retry(); });
+        C.peer.on('error', e => { if (C.kicked) return; stat(e.type === 'peer-unavailable' ? '⏳ La pantalla no está lista (código ' + code + ')' : '⚠️ Reintentando…'); retry(); });
         C.peer.on('disconnected', () => { if (!C.peer.destroyed) C.peer.reconnect(); });
       }
       if (!C.peer.open) await new Promise(r => C.peer.once('open', r));
-      if (C.conn && C.conn.open) return;
-      const c = C.conn = C.peer.connect(PEER_PREFIX + code.toLowerCase(), { metadata: { slot }, reliable: true });
-      c.on('open', () => { stat('✅ Conectado', true); navigator.vibrate && navigator.vibrate(40); });
-      c.on('data', onData);
-      c.on('close', () => { if (C.conn === c) { stat('🔌 Reconectando…'); retry(); } });
+      if (C.kicked || (C.conn && C.conn.open)) return;
+      const c = C.conn = C.peer.connect(PEER_PREFIX + code.toLowerCase(), { metadata: { slot, dev: DEV }, reliable: true });
+      c.on('open', () => { if (C.conn === c) { stat('✅ Conectado', true); navigator.vibrate && navigator.vibrate(40); } });
+      c.on('data', d => { if (C.conn !== c) return; if (d && d.t === 'kicked') kicked(); else onData(d); });
+      c.on('close', () => { if (C.conn === c && !C.kicked) { stat('🔌 Reconectando…'); retry(); } });
     }
     function onData(m) {
       if (!m || typeof m !== 'object') return;
@@ -8474,7 +8499,7 @@
     let wl = null;
     const wake = async () => { try { if (!wl && navigator.wakeLock) { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } } catch (e) { } };
     document.addEventListener('pointerdown', wake);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { wake(); if (!C.conn || !C.conn.open) connect(); } });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { wake(); if (!C.kicked && (!C.conn || !C.conn.open)) connect(); } });
     setView({ v: 'wait', title: '📱 Control', msg: 'Conectando con la pantalla…' });
     connect();
   }
